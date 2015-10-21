@@ -6,6 +6,26 @@ from std_msgs.msg import Empty
 
 PUB_RATE = 50
 
+def forward(time, cmd_vel):
+    """Move forward for time seconds"""
+    rate = rospy.Rate(PUB_RATE)
+    end = rospy.get_time() + time
+
+    while rospy.get_time() < end:
+        cmd_vel.publish(Twist(Vector3(1,0,0), Vector3(0,0,0)))
+        rate.sleep()
+        yield
+
+def turn(time, dir, cmd_vel):
+    """Turn in dir (+/- 1) for time seconds"""
+    rate = rospy.Rate(PUB_RATE)
+    end = rospy.get_time() + time
+    
+    while rospy.get_time() < end:
+        cmd_vel.publish(Twist(Vector3(0,0,0), Vector3(0,0,dir)))
+        rate.sleep()
+        yield
+
 def run_auto(takeoff, land, cmd_vel):
     rospy.sleep(2)
 
@@ -15,32 +35,12 @@ def run_auto(takeoff, land, cmd_vel):
     rospy.sleep(2)
     yield
 
-    rate = rospy.Rate(PUB_RATE)
+    for i in forward(3, cmd_vel): pass
 
-    for i in xrange(5*PUB_RATE):
-        cmd_vel.publish(Twist(Vector3(1,0,0), Vector3(0,0,0)))
-        print 'Fly 1'
-        rate.sleep()
-        yield
+    for i in turn(1, 1, cmd_vel): pass
 
-    rospy.sleep(1)
-    yield
-
-    for i in xrange(5*PUB_RATE):
-        cmd_vel.publish(Twist(Vector3(0,0,0), Vector3(0,0,1)))
-        print 'Fly 2'
-        rate.sleep()
-        yield
-
-    rospy.sleep(1)
-    yield
-
-    for i in xrange(2*PUB_RATE):
-        cmd_vel.publish(Twist(Vector3(1,0,0), Vector3(0,0,0)))
-        print 'Fly 3'
-        rate.sleep()
-        yield
-
+    for i in forward(3, cmd_vel): pass
+    
     rospy.sleep(1)
     yield
 
