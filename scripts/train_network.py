@@ -1,16 +1,20 @@
 #!/usr/bin/env python2
 
+import os
 import random
 import rospy
+import sys
 import threading
 
 from ros_myo.msg import EmgArray
 
 from pybrain.datasets import SupervisedDataSet
+from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.tools.shortcuts import buildNetwork
+from pybrain.tools.customxml import NetworkWriter, NetworkReader
 
 myo_data_lock = threading.Lock()
-myo_data = [0.0] * 9
+myo_data = [0.0] * 8
 
 def myo_callback(emgArr):
     with myo_data_lock:
@@ -32,30 +36,29 @@ def main():
         ("Backward-Right", [-1, 1]),
     ]
 
-    net = buildNetwork(9, 12, 2)
+    if len(sys.argv[1:]) >= 1 and os.path.exists(sys.argv[1]):
+        print "Loading from %s" % sys.argv[1]
+        net = NetworkReader.readFrom(sys.argv[1])
+    else:
+        print "Starting new network"
+        net = buildNetwork(8, 10, 2)
 
-    trainSet = SupervisedDataSet(9, 2)
-
-    rospy.sleep(5)
+    trainSet = SupervisedDataSet(8, 2)
 
     print "Beginning Data Collection"
 
-    rospy.sleep(2)
-
-    for i in xrange(5):
+    for i in xrange(1):
         random.shuffle(cases)
         for name, output in cases:
             print "Go to position %s" % name
-            rospy.sleep(1)
-            print "Snappshotting in 2s"
-            rospy.sleep(2)
+            print "press enter to continue...",
+            raw_input()
 
             with myo_data_lock:
+                print "Snapshotting data: %s" % myo_data
                 trainSet.addSample(myo_data, output)
-            print "Snapshot taken"
-            rospy.sleep(1)
             
-    emg_sum.unsubscribe()
+    emg_sub.unregister()
 
     print "Starting Training"
 
@@ -65,4 +68,18 @@ def main():
 
     print "Training Completed"
 
-    
+    if len(sys.argv[1:]) >= 1:
+        print "Saving trained network in %s" % sys.argv[1]
+        NetworkWriter.writeToFile(net, sys.argv[1])
+
+    print "Running rest of input on network"
+
+    def run_network(emgArr):
+        print net.activate(emgArr.data)
+
+    emg_sub = rospy.Subscriber("myo_emg", EmgArray, run_network)
+
+    rospy.spin()
+
+if __name__ == '__main__':
+    main()
