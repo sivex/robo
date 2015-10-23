@@ -12,6 +12,7 @@ def main():
 
     # handler for myo_imu subscriber.
     def myo_msg_handle(emgArr):
+        emgArr = emgArr.data
 
         avgRight = sum(emgArr[0:4]) / 4.0
         avgLeft = sum(emgArr[4:8]) / 4.0
@@ -21,18 +22,20 @@ def main():
         move = Vector3(0,0,0)
 
         if avgLeft > avgRight + 200:
-            move.x = 1
+            move.y = 1
         elif avgRight > avgLeft + 200:
-            move.x = -1
+            move.y = -1
 
         if avgTop > avgBottom + 200:
-            move.y = -1
+            move.x = -1
         elif avgBottom > avgTop + 200:
-            move.y = 1
+            move.x = 1
+
+        print 'Publishing %s' % move
 
         arPub.publish(Twist(move, Vector3(0,0,0)))
 
-    rospy.Subscriber("myo_emg", EmgArray, my_msg_handle)
+    rospy.Subscriber("myo_emg", EmgArray, myo_msg_handle)
 
     rospy.spin()
 
