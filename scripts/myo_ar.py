@@ -1,8 +1,11 @@
 #!/usr/bin/env python2
+from __future__ import print_function
+
 import rospy
 
+import tf
 from geometry_msgs.msg import Twist, Vector3
-from ros_myo.msg import EmgArray
+from sensor_msgs.msg import Imu
 
 def main():
     rospy.init_node('myo_ar', anonymous=True)
@@ -11,31 +14,18 @@ def main():
     arPub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 
     # handler for myo_imu subscriber.
-    def myo_msg_handle(emgArr):
-        emgArr = emgArr.data
+    def myo_msg_handle(imu):
+        ori = imu.orientation
 
-        avgRight = sum(emgArr[0:4]) / 4.0
-        avgLeft = sum(emgArr[4:8]) / 4.0
-        avgTop = sum(emgArr[2:6]) / 4.0
-        avgBottom = sum(emgArr[6:8] + emgArr[0:2]) / 4.0
+        print(ori)
+        x,y,z = tf.transformations.euler_from_quaternion(
+            (ori.x, ori.y, ori.z, ori.w))
 
-        move = Vector3(0,0,0)
+        print(x, y, z)
 
-        if avgLeft > avgRight + 200:
-            move.y = 1
-        elif avgRight > avgLeft + 200:
-            move.y = -1
+        arPub.publish(Twist(Vector3(x, y, z), Vector3(0,0,0)))
 
-        if avgTop > avgBottom + 200:
-            move.x = -1
-        elif avgBottom > avgTop + 200:
-            move.x = 1
-
-        print 'Publishing %s' % move
-
-        arPub.publish(Twist(move, Vector3(0,0,0)))
-
-    rospy.Subscriber("myo_emg", EmgArray, myo_msg_handle)
+    rospy.Subscriber("myo_imu", Imu, myo_msg_handle)
 
     rospy.spin()
 
