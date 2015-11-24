@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find ardrone_autonomy)/launch/ardrone.launch" />
+  <node name="myo_raw" pkg="ros_myo" type="myo-rawNode.py" respawn="true" />
+  <node name="myo_ar" pkg="robo" type="myo_ar.py" respawn="true" />
+</launch>
