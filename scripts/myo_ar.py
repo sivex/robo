@@ -54,12 +54,13 @@ def main():
     def gest_handler(msg):
         #print('GEST HANDLER')
         data = Pose(msg.data)
+        print(data)
         if data == Pose.FINGERS_SPREAD:
             takeoff.publish(Empty())
             print('Takeoff')
-        #elif data == Pose.WAVE_OUT or data == Pose.WAVE_IN:
-        #    land.publish(Empty())
-        #    print('Land')
+        elif data == Pose.FIST:
+            land.publish(Empty())
+            print('Land')
         #elif data == Pose.:
         #    reset.publish(Empty())
         #    print('Reset')
