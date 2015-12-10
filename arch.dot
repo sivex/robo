@@ -1,0 +1,35 @@
+digraph {
+    M1 [label="/dev/ttyACM0" shape="triangle"];
+    M2 [label="/dev/ttyACM1" shape="triangle"];
+    mr1 [label="myo-rawNode.py" shape="rect"];
+    mr2 [label="myo-rawNode.py" shape="rect"];
+    imu1 [label="myo_imu1"];
+    imu2 [label="myo_imu2"];
+    gest [label="myo_gest1"];
+    robo [label="myo_ar.py" shape="rect"];
+    cmd_vel;
+    takeoff [label="ardrone/takeoff"];
+    land [label="ardrone/land"];
+    ardrone_autonomy [shape="rect"];
+
+
+    M1 -> mr1;
+    M2 -> mr2;
+
+    mr1 -> imu1;
+    mr2 -> imu2;
+
+    mr2 -> gest;
+
+    imu1 -> robo;
+    imu2 -> robo;
+    gest -> robo;
+
+    robo -> cmd_vel;
+    robo -> takeoff;
+    robo -> land;
+
+    cmd_vel -> ardrone_autonomy;
+    takeoff -> ardrone_autonomy;
+    land -> ardrone_autonomy;
+}
